@@ -1542,7 +1542,7 @@ esp_err_t uart_set_mode(uart_port_t uart_num, uart_mode_t mode)
         break;
     case UART_MODE_RS485_HALF_DUPLEX:
         // Enable receiver, sw_rts = 1  generates low level on RTS pin
-        UART[uart_num]->conf0.sw_rts = 1;
+        // UART[uart_num]->conf0.sw_rts = 1;
         UART[uart_num]->rs485_conf.en = 1;
         // Must be set to 0 to automatically remove echo
         UART[uart_num]->rs485_conf.tx_rx_en = 0;
