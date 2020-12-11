@@ -107,6 +107,8 @@ esp_err_t tcpip_adapter_create_ip6_linklocal(tcpip_adapter_if_t tcpip_if);
  */
 esp_err_t tcpip_adapter_set_default_eth_handlers(void);
 
+esp_err_t tcpip_adapter_set_default_eth_static_handlers(void);
+
 /**
  * @brief Compatible version of network stack input function. Translates to esp_netif_receive()
  */

@@ -126,6 +126,18 @@ esp_err_t tcpip_adapter_set_default_eth_handlers(void)
 
 }
 
+esp_err_t tcpip_adapter_set_default_eth_static_handlers(void) {
+  if (s_tcpip_adapter_compat) {
+    esp_netif_config_t cfg = ESP_NETIF_DEFAULT_ETH();
+    esp_netif_t *eth_netif = esp_netif_new(&cfg);
+
+    s_esp_netifs[TCPIP_ADAPTER_IF_ETH] = eth_netif;
+
+    return esp_eth_set_static_default_handlers(eth_netif);
+  }
+  return ESP_OK;
+}
+
 esp_err_t tcpip_adapter_compat_start_eth(void *eth_driver)
 {
     if (s_tcpip_adapter_compat) {

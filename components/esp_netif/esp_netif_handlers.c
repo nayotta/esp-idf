@@ -12,90 +12,135 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string.h>
-#include "esp_netif.h"
-#include "esp_event.h"
 #include "esp_err.h"
+#include "esp_event.h"
 #include "esp_log.h"
+#include "esp_netif.h"
 #include "esp_netif_private.h"
+#include <string.h>
 
 //
 // Purpose of this module is to define general event handler primitives
-// enabling application code to them either directly or with minimal modification
-// for example with a separate pre/post handler.
-// This module has no dependency on a specific network stack (lwip)
+// enabling application code to them either directly or with minimal
+// modification for example with a separate pre/post handler. This module has no
+// dependency on a specific network stack (lwip)
 //
 
 static const char *TAG = "esp_netif_handlers";
 
-void esp_netif_action_start(void *esp_netif, esp_event_base_t base, int32_t event_id, void *data)
-{
-    ESP_LOGD(TAG, "esp_netif action has started with netif%p from event_id=%d", esp_netif, event_id);
-    esp_netif_start(esp_netif);
+void esp_netif_action_start(void *esp_netif, esp_event_base_t base,
+                            int32_t event_id, void *data) {
+  ESP_LOGD(TAG, "esp_netif action has started with netif%p from event_id=%d",
+           esp_netif, event_id);
+  esp_netif_start(esp_netif);
 }
 
-void esp_netif_action_stop(void *esp_netif, esp_event_base_t base, int32_t event_id, void *data)
-{
-    ESP_LOGD(TAG, "esp_netif action stopped with netif%p from event_id=%d", esp_netif, event_id);
-    esp_netif_stop(esp_netif);
+void esp_netif_action_stop(void *esp_netif, esp_event_base_t base,
+                           int32_t event_id, void *data) {
+  ESP_LOGD(TAG, "esp_netif action stopped with netif%p from event_id=%d",
+           esp_netif, event_id);
+  esp_netif_stop(esp_netif);
 }
 
-void esp_netif_action_connected(void *esp_netif, esp_event_base_t base, int32_t event_id, void *data)
-{
-    esp_netif_dhcp_status_t status;
+void esp_netif_action_connected(void *esp_netif, esp_event_base_t base,
+                                int32_t event_id, void *data) {
+  esp_netif_dhcp_status_t status;
 
-    ESP_LOGD(TAG, "esp_netif action connected with netif%p from event_id=%d", esp_netif, event_id);
-    esp_netif_up(esp_netif);
+  ESP_LOGD(TAG, "esp_netif action connected with netif%p from event_id=%d",
+           esp_netif, event_id);
+  esp_netif_up(esp_netif);
 
-    esp_netif_dhcpc_get_status(esp_netif, &status);
-    if (status == ESP_NETIF_DHCP_INIT) {
-        esp_netif_dhcpc_start(esp_netif);
-    } else if (status == ESP_NETIF_DHCP_STOPPED) {
-        //
-        esp_netif_ip_info_t ip;
-        esp_netif_ip_info_t old_ip;
+  esp_netif_dhcpc_get_status(esp_netif, &status);
 
-        esp_netif_get_ip_info(esp_netif, &ip);
-        esp_netif_get_old_ip_info(esp_netif, &old_ip);
+  // debug here
+  //  esp_netif_ip_info_t eth_ip;
+  //  esp_err_t err = ESP_OK;
+  //  eth_ip.ip.addr = esp_ip4addr_aton("10.151.146.36");
+  //  eth_ip.netmask.addr = esp_ip4addr_aton("255.255.254.0");
+  //  eth_ip.gw.addr = esp_ip4addr_aton("10.151.146.254");
 
-        if (esp_netif_is_valid_static_ip(&ip)) {
-            ip_event_got_ip_t evt = {
-                    .esp_netif = esp_netif,
-                    .if_index = -1, // to indicate ptr to if used
-                    .ip_changed = false,
-            };
+  //  esp_netif_dhcpc_stop(esp_netif);
+  //  err = esp_netif_set_ip_info(esp_netif, &eth_ip);
+  //  if (err != ESP_OK) {
+  //    ESP_LOGE(TAG, "%4d %s esp_netif_set_ip_info failed", __LINE__,
+  //    __func__);
+  //  }
+  //  return;
 
-            if (memcmp(&ip, &old_ip, sizeof(ip))) {
-                evt.ip_changed = true;
-            }
+  if (status == ESP_NETIF_DHCP_INIT) {
+    esp_netif_dhcpc_start(esp_netif);
+  } else if (status == ESP_NETIF_DHCP_STOPPED) {
+    //
+    esp_netif_ip_info_t ip;
+    esp_netif_ip_info_t old_ip;
 
-            memcpy(&evt.ip_info, &ip, sizeof(esp_netif_ip_info_t));
-            esp_netif_set_old_ip_info(esp_netif, &ip);
+    esp_netif_get_ip_info(esp_netif, &ip);
+    esp_netif_get_old_ip_info(esp_netif, &old_ip);
 
-            ESP_NETIF_CALL_CHECK("esp_event_send_internal in esp_netif_action_connected",
-                    esp_event_send_internal(IP_EVENT, esp_netif_get_event_id(esp_netif, ESP_NETIF_IP_EVENT_GOT_IP) ,
-                                                    &evt, sizeof(evt), 0), ESP_OK);
-            ESP_LOGD(TAG, "static ip: ip changed=%d", evt.ip_changed);
-        } else {
-            ESP_LOGE(TAG, "invalid static ip");
-        }
+    if (esp_netif_is_valid_static_ip(&ip)) {
+      ip_event_got_ip_t evt = {
+          .esp_netif = esp_netif,
+          .if_index = -1, // to indicate ptr to if used
+          .ip_changed = false,
+      };
+
+      if (memcmp(&ip, &old_ip, sizeof(ip))) {
+        evt.ip_changed = true;
+      }
+
+      memcpy(&evt.ip_info, &ip, sizeof(esp_netif_ip_info_t));
+      esp_netif_set_old_ip_info(esp_netif, &ip);
+
+      ESP_NETIF_CALL_CHECK(
+          "esp_event_send_internal in esp_netif_action_connected",
+          esp_event_send_internal(
+              IP_EVENT,
+              esp_netif_get_event_id(esp_netif, ESP_NETIF_IP_EVENT_GOT_IP),
+              &evt, sizeof(evt), 0),
+          ESP_OK);
+      ESP_LOGD(TAG, "static ip: ip changed=%d", evt.ip_changed);
+    } else {
+      ESP_LOGE(TAG, "invalid static ip");
     }
+  }
 }
 
-void esp_netif_action_disconnected(void *esp_netif, esp_event_base_t base, int32_t event_id, void *data)
-{
-    ESP_LOGD(TAG, "esp_netif action disconnected with netif%p from event_id=%d", esp_netif, event_id);
-    esp_netif_down(esp_netif);
+void esp_netif_static_action_connected(void *esp_netif, esp_event_base_t base,
+                                       int32_t event_id, void *data) {
+  esp_netif_dhcp_status_t status;
+  esp_netif_ip_info_t eth_ip;
+  esp_err_t err = ESP_OK;
 
+  ESP_LOGD(TAG, "esp_netif action connected with netif%p from event_id=%d",
+           esp_netif, event_id);
+  esp_netif_up(esp_netif);
+
+  esp_netif_dhcpc_get_status(esp_netif, &status);
+
+  eth_ip.ip.addr = esp_ip4addr_aton("172.30.105.226");
+  eth_ip.netmask.addr = esp_ip4addr_aton("255.255.255.0");
+  eth_ip.gw.addr = esp_ip4addr_aton("172.30.105.254");
+
+  esp_netif_dhcpc_stop(esp_netif);
+  err = esp_netif_set_ip_info(esp_netif, &eth_ip);
+  if (err != ESP_OK) {
+    ESP_LOGE(TAG, "%4d %s esp_netif_set_ip_info failed", __LINE__, __func__);
+  }
 }
 
-void esp_netif_action_got_ip(void *esp_netif, esp_event_base_t base, int32_t event_id, void *data)
-{
-    ESP_LOGD(TAG, "esp_netif action got_ip with netif%p from event_id=%d", esp_netif, event_id);
-    const ip_event_got_ip_t *event = (const ip_event_got_ip_t *) data;
-    ESP_LOGI(TAG, "%s ip: " IPSTR ", mask: " IPSTR ", gw: " IPSTR, esp_netif_get_desc(esp_netif),
-             IP2STR(&event->ip_info.ip),
-             IP2STR(&event->ip_info.netmask),
-             IP2STR(&event->ip_info.gw));
+void esp_netif_action_disconnected(void *esp_netif, esp_event_base_t base,
+                                   int32_t event_id, void *data) {
+  ESP_LOGD(TAG, "esp_netif action disconnected with netif%p from event_id=%d",
+           esp_netif, event_id);
+  esp_netif_down(esp_netif);
 }
 
+void esp_netif_action_got_ip(void *esp_netif, esp_event_base_t base,
+                             int32_t event_id, void *data) {
+  ESP_LOGD(TAG, "esp_netif action got_ip with netif%p from event_id=%d",
+           esp_netif, event_id);
+  const ip_event_got_ip_t *event = (const ip_event_got_ip_t *)data;
+  ESP_LOGI(TAG, "%s ip: " IPSTR ", mask: " IPSTR ", gw: " IPSTR,
+           esp_netif_get_desc(esp_netif), IP2STR(&event->ip_info.ip),
+           IP2STR(&event->ip_info.netmask), IP2STR(&event->ip_info.gw));
+}

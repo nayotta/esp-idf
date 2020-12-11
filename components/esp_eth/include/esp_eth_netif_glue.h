@@ -61,6 +61,10 @@ esp_err_t esp_eth_set_default_handlers(void *esp_netif);
  */
 esp_err_t esp_eth_clear_default_handlers(void *esp_netif);
 
+esp_err_t esp_eth_set_static_default_handlers(void *esp_netif);
+
+esp_err_t esp_eth_clear_static_default_handlers(void *esp_netif);
+
 #ifdef __cplusplus
 }
 #endif

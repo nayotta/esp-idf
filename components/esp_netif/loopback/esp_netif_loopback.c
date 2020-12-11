@@ -280,7 +280,7 @@ esp_err_t esp_netif_transmit(esp_netif_t *esp_netif, void* data, size_t len)
 
 esp_err_t esp_netif_receive(esp_netif_t *esp_netif, void *buffer, size_t len, void *eb)
 {
-    ESP_LOGV(TAG, "Received data: ptr:%p, size:%d", buffer, len);
+    ESP_LOGI(TAG, "Received data: ptr:%p, size:%d", buffer, len);
     esp_netif_transmit(esp_netif, buffer, len);
     if (eb) {
         esp_netif_free_rx_buffer(esp_netif, eb);

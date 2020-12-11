@@ -102,6 +102,10 @@ void emac_hal_lowlevel_init(emac_hal_context_t *hal)
     /* RMII CLK (50MHz) output to GPIO17 */
     PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO17_U, FUNC_GPIO17_EMAC_CLK_OUT_180);
     PIN_INPUT_DISABLE(GPIO_PIN_MUX_REG[17]);
+#else
+    /* RMII CLK (50MHz) output to GPIO17 */
+    PIN_FUNC_SELECT(PERIPHS_IO_MUX_GPIO17_U, FUNC_GPIO17_EMAC_CLK_OUT_180);
+    PIN_INPUT_DISABLE(GPIO_PIN_MUX_REG[17]);
 #endif
 #endif // CONFIG_ETH_RMII_CLK_OUTPUT
     /* Clock configuration */

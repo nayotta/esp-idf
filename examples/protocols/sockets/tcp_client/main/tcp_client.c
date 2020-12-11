@@ -24,7 +24,7 @@
 #include "lwip/sys.h"
 #include <lwip/netdb.h>
 
-
+#define CONFIG_EXAMPLE_IPV4
 #ifdef CONFIG_EXAMPLE_IPV4
 #define HOST_IP_ADDR CONFIG_EXAMPLE_IPV4_ADDR
 #else

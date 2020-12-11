@@ -89,7 +89,7 @@ set(srcs "port/os_xtensa.c"
     "src/wps/wps_validate.c")
 
 idf_component_register(SRCS "${srcs}"
-                    INCLUDE_DIRS include port/include include/esp_supplicant
+                    INCLUDE_DIRS include port/include include/esp_supplicant src
                     PRIV_INCLUDE_DIRS src
                     PRIV_REQUIRES mbedtls)
 

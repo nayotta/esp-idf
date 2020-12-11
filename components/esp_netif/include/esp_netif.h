@@ -225,6 +225,9 @@ void esp_netif_action_connected(void *esp_netif, esp_event_base_t base, int32_t 
  */
 void esp_netif_action_disconnected(void *esp_netif, esp_event_base_t base, int32_t event_id, void *data);
 
+void esp_netif_static_action_connected(void *esp_netif, esp_event_base_t base,
+                                int32_t event_id, void *data);
+
 /**
  * @brief Default building block for network interface action upon network got IP event
  *
